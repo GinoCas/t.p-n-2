@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
 // ========= CONSTANTES DEL JUEGO =========
 #define SCREEN_WIDTH 500
 #define SCREEN_HEIGHT 800
@@ -211,10 +210,15 @@ void gameBoardDelete(GameBoard* board) {
 }
 
 void gameBoardAddParticle(GameBoard* board, float x, float y, int color) {
-    // TODO: Crear un ParticleNode con memoria dinámica.
-    // TODO: Inicializar x, y, velocidades aleatorias y un life_timer.
-    // TODO: Agregarlo al principio de la lista enlazada simple de partículas.
-    printf("Función gameBoardAddParticle no implementada.\n");
+    struct ParticleNode *newParticle = (struct ParticleNode*) malloc(sizeof(ParticleNode));
+    newParticle->x = x;
+    newParticle->y = y;
+    newParticle->color = color;
+    newParticle->vel_x = (float) rand() / RAND_MAX * 8.0f - 4.0f;
+    newParticle->vel_y = (float) rand() / RAND_MAX * 8.0f - 4.0f;
+    newParticle->life_timer = 31 + rand() % 30;
+    newParticle->next = board->first_particle;
+    board->first_particle = newParticle;
 }
 
 /* Helpers */
@@ -280,25 +284,33 @@ int gameBoardCheckAndClearLines(GameBoard* board) {
 
 void gameBoardEnqueuePiece(GameBoard* board, int type) {
     PieceQueueNode* NewNode = (PieceQueueNode*) malloc (sizeof(PieceQueueNode));
-    NewNode->type = type
-    NewNode->next = NULL
+    NewNode->type = type;
+    NewNode->next = NULL;
     if (board->queue_head == NULL){
-        board->queue_head = NewNode
-        board->queue_tail = NewNode
+        board->queue_head = NewNode;
+        board->queue_tail = NewNode;
     }
     else{
-        
+        board->queue_tail->next = NewNode;
+        board->queue_tail = NewNode;
     }
-    // TODO: Insertarlo al final de la cola (queue_tail) y actualizar punteros.
-    //printf("Función gameBoardEnqueuePiece no implementada.\n");
+    
 }
 
 int gameBoardDequeuePiece(GameBoard* board, int* out_type) {
-    // TODO: Si la cola está vacía, retornar 0.
-    // TODO: Extraer el primer nodo (queue_head).
-    // TODO: Guardar el type en la variable out_type, liberar el nodo y actualizar el head.
-    printf("Función gameBoardDequeuePiece no implementada.\n");
-    return 0;
+    if (board->queue_tail == NULL) {
+        return 0;
+    }
+    *out_type = (board->queue_head)->type;
+    struct PieceQueueNode *noda = board->queue_head;
+    if (noda->next == NULL) {
+        board->queue_head = NULL;
+        board->queue_tail = NULL;
+    } else {
+        board->queue_head = noda->next;
+    }
+    free(noda);
+    return 1;
 }
 
 // ========= LOGICA DE DIBUJADO Y COLISIONES (NO MODIFICAR) =========
