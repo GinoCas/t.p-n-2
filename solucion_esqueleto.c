@@ -128,51 +128,85 @@ char* strConcatenate(char* src1, char* src2){
 }
 
 // ========= EJERCICIO 2: FUNCIONES A IMPLEMENTAR (EL TP) =========
-struct memRow* addLast(struct RowNode *previousNode) {
-    struct RowNode *newNode = (struct RowNode*) malloc(sizeof(struct RowNode));
+RowNode* createRowNode(){
+    return (RowNode*) malloc(sizeof(RowNode));
+}
+RowNode* addLast(RowNode *previousNode) {
+    RowNode *newNode = createRowNode();
     previousNode->next = newNode;
+    fillCellsZero(newNode->cells);
     return newNode;
+}
+
+void fillCellsZero(int* cells){
+    for (int i = 0; i < 10; i++) {
+        cells[i] = 0;
+    }
 }
 
 GameBoard* gameBoardNew() {
     // TODO: Reservar memoria para el GameBoard.
+    GameBoard *board = (GameBoard*) malloc(sizeof(GameBoard));
     // TODO: Inicializar queue_head, queue_tail y first_particle en NULL.
-    game_board->score = 0;
-    game_board->tick_timer = 0;
-    game_board->first_particle = NULL;
-    game_board->queue_head = NULL;
-    game_board->queue_tail = NULL;
+    board->score = 0;
+    board->tick_timer = 0;
+    board->first_particle = NULL;
+    board->queue_head = NULL;
+    board->queue_tail = NULL;
 
     
     // TODO: Usar un bucle para hacer malloc de las 20 filas (RowNode) y conectarlas.
-    struct RowNode *initRow = (struct RowNode*) malloc(sizeof(struct RowNode));
-    for (int i = 0; i < 10; i++) {
-        initRow->cells[i] = 0;
-    }
-    struct RowNode *endRow = addLast(initRow);
-    for (int i = 0; i < 10; i++){
-        initRow->cells[i] = 0;
-    }
-
+    RowNode *initRow = createRowNode();
+    fillCellsZero(initRow->cells);
+    RowNode *endRow = initRow;
     for (int i = 1; i<20; i++){   
         endRow = addLast(endRow);
-        for (int i = 0; i < 10; i++) {
-            endRow->cells[i] = 0;
-        }
     }
     // TODO: El puntero first_row debe apuntar al primero de esos nodos.
-    game_board->first_row = initRow;
+    board->first_row = initRow;
+    
+    return board;
+}
 
-    // printf("Función gameBoardNew no implementada.\n");
-    return NULL;
+/* Funciones auxiliares de limpieza */
+void clearGameRows(RowNode *initRow){
+    if(initRow == NULL){
+        return; 
+    }
+    clearGameRows(initRow->next);
+    free(initRow);
+}
+
+void clearGameParticles(ParticleNode *initParticle){
+    if(initParticle == NULL){
+        return; 
+    }
+    clearGameParticles(initParticle->next);
+    free(initParticle);
+}
+
+void clearGamePieces(PieceQueueNode *initPiece){
+    if(initPiece == NULL){
+        return; 
+    }
+    clearGamePieces(initPiece->next);
+    free(initPiece);
 }
 
 void gameBoardDelete(GameBoard* board) {
     // TODO: Debe tolerar board == NULL.
+    if(board == NULL){
+        free(board);
+        return;
+    }
     // TODO: Recorrer y liberar todos los RowNode con free().
+    clearGameRows(board->first_row);
     // TODO: Recorrer y liberar todos los PieceQueueNode.
+    clearGamePieces(board->queue_head);
     // TODO: Recorrer y liberar todos los ParticleNode.
+    clearGameParticles(board->first_particle);
     // TODO: Finalmente, liberar la estructura GameBoard.
+    free(board);
     printf("Función gameBoardDelete no implementada.\n");
 }
 
