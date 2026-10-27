@@ -1,5 +1,3 @@
-
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -27,7 +25,7 @@ char* strDuplicate(char* src){
 
 int strCompare(char* s1, char* s2){
     int count = 0;
-    while(s1[count] == s2[count]){
+    while(s1[count] == s2[count] && s1[count] != '\0'){
         count++;
     }
     if(s1[count] < s2[count]){

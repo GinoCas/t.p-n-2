@@ -63,7 +63,7 @@ typedef struct ActivePiece {
 
 typedef struct GameBoard {
     RowNode* first_row;             
-    PieceQueueNode* queue_head;     
+    PieceQueueNode* queue_head;
     PieceQueueNode* queue_tail;     
     ParticleNode* first_particle;   
     ActivePiece current_piece;
@@ -78,32 +78,92 @@ GameBoard* game_board = NULL;
 
 // ========= EJERCICIO 1: STRINGS (NO USAR string.h) =========
 
-char* strDuplicate(char* src) {
-    // TODO: Contar los caracteres de src, reservar con malloc (no olvidar el '\0'),
-    //       copiar todo y devolver el puntero nuevo.
-    return NULL;
+int len(char* s1) {
+    int i = 0;
+    while (s1[i] != 0) {
+        i++;
+    }
+    return i;
 }
 
-int strCompare(char* s1, char* s2) {
-    // TODO: Devolver 0 si son iguales, 1 si s1 < s2, -1 si s1 > s2.
-    //       Ojo: es la convencion INVERSA a strcmp.
+char* strDuplicate(char* src){
+    int cantLetras = len(src); // -> 9 letras (no inclue \0)
+    char *srcDuplicado = (char*) malloc ((cantLetras + 1) * sizeof(char)); // -> pedimos la memoria para duplicar
+    for (int i = 0; i < cantLetras; i++){
+        srcDuplicado[i] = src[i];
+    }
+    srcDuplicado[cantLetras] = "\0";
+    return srcDuplicado;
+}
+
+int strCompare(char* s1, char* s2){
+    int count = 0;
+    while(s1[count] == s2[count] && s1[count] != '\0'){
+        count++;
+    }
+    if(s1[count] < s2[count]){
+        return 1;
+    }
+    if(s1[count] > s2[count]){
+        return -1;
+    }
     return 0;
 }
 
-char* strConcatenate(char* src1, char* src2) {
-    // TODO: Reservar un string nuevo con src1 seguido de src2, y liberar src1 y src2.
-    //       Precondicion: src1 y src2 vienen de malloc y son punteros distintos.
-    return NULL;
+
+char* strConcatenate(char* src1, char* src2){
+    int lenSrc1 = len(src1);
+    int lenSrc2 = len(src2);
+    char *concat = (char*) malloc(sizeof(char) * (lenSrc1 + lenSrc2 + 1));
+    for (int i = 0; i < lenSrc1; i++) {
+        concat[i] = src1[i];
+    }
+    for (int j = 0; j < lenSrc2; j++) {
+        concat[lenSrc1 + j] = src2[j];
+    }
+    concat[lenSrc1 + lenSrc2] = 0;
+    free(src1);
+    free(src2);
+    return concat;
 }
 
 // ========= EJERCICIO 2: FUNCIONES A IMPLEMENTAR (EL TP) =========
+struct memRow* addLast(struct RowNode *previousNode) {
+    struct RowNode *newNode = (struct RowNode*) malloc(sizeof(struct RowNode));
+    previousNode->next = newNode;
+    return newNode;
+}
 
 GameBoard* gameBoardNew() {
     // TODO: Reservar memoria para el GameBoard.
-    // TODO: Usar un bucle para hacer malloc de las 20 filas (RowNode) y conectarlas.
-    // TODO: El puntero first_row debe apuntar al primero de esos nodos.
     // TODO: Inicializar queue_head, queue_tail y first_particle en NULL.
-    printf("Función gameBoardNew no implementada.\n");
+    game_board->score = 0;
+    game_board->tick_timer = 0;
+    game_board->first_particle = NULL;
+    game_board->queue_head = NULL;
+    game_board->queue_tail = NULL;
+
+    
+    // TODO: Usar un bucle para hacer malloc de las 20 filas (RowNode) y conectarlas.
+    struct RowNode *initRow = (struct RowNode*) malloc(sizeof(struct RowNode));
+    for (int i = 0; i < 10; i++) {
+        initRow->cells[i] = 0;
+    }
+    struct RowNode *endRow = addLast(initRow);
+    for (int i = 0; i < 10; i++){
+        initRow->cells[i] = 0;
+    }
+
+    for (int i = 1; i<20; i++){   
+        endRow = addLast(endRow);
+        for (int i = 0; i < 10; i++) {
+            endRow->cells[i] = 0;
+        }
+    }
+    // TODO: El puntero first_row debe apuntar al primero de esos nodos.
+    game_board->first_row = initRow;
+
+    // printf("Función gameBoardNew no implementada.\n");
     return NULL;
 }
 
