@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdbool.h>
 // ========= CONSTANTES DEL JUEGO =========
 #define SCREEN_WIDTH 500
 #define SCREEN_HEIGHT 800
@@ -91,7 +92,7 @@ char* strDuplicate(char* src){
     for (int i = 0; i < cantLetras; i++){
         srcDuplicado[i] = src[i];
     }
-    srcDuplicado[cantLetras] = "\0";
+    srcDuplicado[cantLetras] = '\0';
     return srcDuplicado;
 }
 
@@ -128,13 +129,11 @@ char* strConcatenate(char* src1, char* src2){
 
 // ========= EJERCICIO 2: FUNCIONES A IMPLEMENTAR (EL TP) =========
 RowNode* createRowNode(){
-    return (RowNode*) malloc(sizeof(RowNode));
-}
-RowNode* addLast(RowNode *previousNode) {
-    RowNode *newNode = createRowNode();
-    previousNode->next = newNode;
-    fillCellsZero(newNode->cells);
-    return newNode;
+    RowNode* node = (RowNode*) malloc(sizeof(RowNode));
+    if (node != NULL) {
+        node->next = NULL;
+    }
+    return node;
 }
 
 void fillCellsZero(int* cells){
@@ -143,30 +142,14 @@ void fillCellsZero(int* cells){
     }
 }
 
-GameBoard* gameBoardNew() {
-    // Reservar memoria para el GameBoard.
-    GameBoard *board = (GameBoard*) malloc(sizeof(GameBoard));
-    // Inicializar queue_head, queue_tail y first_particle en NULL.
-    board->score = 0;
-    board->tick_timer = 0;
-    board->first_particle = NULL;
-    board->queue_head = NULL;
-    board->queue_tail = NULL;
-
-    
-    // Usar un bucle para hacer malloc de las 20 filas (RowNode) y conectarlas.
-    RowNode *initRow = createRowNode();
-    fillCellsZero(initRow->cells);
-    RowNode *endRow = initRow;
-    for (int i = 1; i<GRID_ROWS; i++){   
-        endRow = addLast(endRow);
+RowNode* addLast(RowNode *previousNode) {
+    RowNode *newNode = createRowNode();
+    if(newNode != NULL){
+        previousNode->next = newNode;
+        fillCellsZero(newNode->cells);
     }
-    // El puntero first_row debe apuntar al primero de esos nodos.
-    board->first_row = initRow;
-
-    return board;
+    return newNode;
 }
-
 /* Funciones auxiliares de limpieza */
 void clearGameRows(RowNode *initRow){
     if(initRow == NULL){
@@ -206,7 +189,45 @@ void gameBoardDelete(GameBoard* board) {
     clearGameParticles(board->first_particle);
     // Finalmente, liberar la estructura GameBoard.
     free(board);
-    printf("Función gameBoardDelete no implementada.\n");
+}
+
+GameBoard* gameBoardNew() {
+    // Reservar memoria para el GameBoard.
+    GameBoard *board = (GameBoard*) malloc(sizeof(GameBoard));
+    if(board == NULL){
+        free(board);
+        return NULL;
+    }
+    // Inicializar queue_head, queue_tail y first_particle en NULL.
+    board->score = 0;
+    board->tick_timer = 0;
+    board->first_row = NULL;
+    board->first_particle = NULL;
+    board->queue_head = NULL;
+    board->queue_tail = NULL;
+    board->current_piece.active = 0;
+
+    
+    // Usar un bucle para hacer malloc de las 20 filas (RowNode) y conectarlas.
+    RowNode *initRow = createRowNode();
+    if(initRow == NULL){
+        gameBoardDelete(board);
+        return NULL;
+    }
+    fillCellsZero(initRow->cells);
+    board->first_row = initRow;
+    RowNode *endRow = initRow;
+    for (int i = 1; i<GRID_ROWS; i++){   
+        endRow = addLast(endRow);
+        if(endRow == NULL){
+            gameBoardDelete(board);
+            return NULL;
+        }
+    }
+    // El puntero first_row debe apuntar al primero de esos nodos.
+    board->first_row = initRow;
+
+    return board;
 }
 
 void gameBoardAddParticle(GameBoard* board, float x, float y, int color) {
@@ -235,27 +256,36 @@ bool rowFilled(const RowNode* row) {
 
 RowNode* addFirst(RowNode* nextRow) {
     RowNode *newNode = createRowNode();
-    newNode->next = nextRow;
-    fillCellsZero(newNode->cells);
+    if(newNode != NULL){
+        newNode->next = nextRow;
+        fillCellsZero(newNode->cells);
+    }
     return newNode;
 }
 
-void doParticlesEffect(GameBoard* board){
-    for(int i = 0; i<GRID_COLS; i++){
-        gameBoardAddParticle(board, 0, 0 , 0); // TODO: completar con valores
+void doParticlesEffect(GameBoard* board, RowNode* row, int rowId) {
+    for (int col = 0; col < GRID_COLS; col++) { // misma logica que gameboardDraw (el for recorre columnas)
+        float x = (float)(OFFSET_X + col * CELL_SIZE);
+        float y = (float)(OFFSET_Y + rowId * CELL_SIZE);
+        int color = row->cells[col];
+        gameBoardAddParticle(board, x, y, color);
     }
 }
 
 int gameBoardCheckAndClearLines(GameBoard* board) {
+    if(board == NULL){
+        return 0;
+    }
     // Recorrer la lista de RowNode.
     RowNode* currRow = board->first_row;
     RowNode* prevRow = NULL;
     int deletedCount = 0;
+    int rowId = 0; // fila actual
     while(currRow != NULL){
         // Si un RowNode tiene todas sus celdas > 0, desenlazarlo y hacer free().
         if(rowFilled(currRow)){ // True si la fila esta llena
             // Por cada celda destruida, invocar a gameBoardAddParticle().
-            doParticlesEffect(board);
+            doParticlesEffect(board, currRow, rowId);
 
             // Eliminar fila llena
             RowNode* tempRow = currRow->next;
@@ -272,6 +302,7 @@ int gameBoardCheckAndClearLines(GameBoard* board) {
             prevRow = currRow;
             currRow = currRow->next;   
         }
+        rowId++;
     }
     // Crear un nuevo RowNode vacío (lleno de ceros).
     for(int i = 0; i<deletedCount; i++){
