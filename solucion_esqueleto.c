@@ -118,6 +118,7 @@ int strCompare(char* s1, char* s2){
 
 
 char* strConcatenate(char* src1, char* src2){
+    // Los strings originales fueron reservados dinamicamente.
     int lenSrc1 = len(src1);
     int lenSrc2 = len(src2);
     char *concat = (char*) malloc(sizeof(char) * (lenSrc1 + lenSrc2 + 1));
@@ -133,6 +134,7 @@ char* strConcatenate(char* src1, char* src2){
         concat[lenSrc1 + j] = src2[j];
     }
     concat[lenSrc1 + lenSrc2] = 0;
+    // Se liberan porque el resultado contiene una copia de ambos.
     free(src1);
     free(src2);
     return concat;
@@ -232,6 +234,8 @@ GameBoard* gameBoardNew() {
     fillCellsZero(initRow->cells);
     board->first_row = initRow;
     RowNode *endRow = initRow;
+    // Cada fila se reserva dinamicamente y se enlaza con la anterior.
+    // Si falla una reserva, se libera toda la memoria creada.
     for (int i = 1; i<GRID_ROWS; i++){   
         endRow = addLast(endRow);
         if(endRow == NULL){
@@ -265,7 +269,7 @@ void gameBoardAddParticle(GameBoard* board, float x, float y, int color) {
 bool rowFilled(const RowNode* row) {
     if (row == NULL) return false;
     int currCell = 0;
-    while (currCell < 10 && row->cells[currCell] > 0){currCell++;}
+    while (currCell < GRID_COLS && row->cells[currCell] > 0){currCell++;}
     if(currCell == 10){
         return true;
     }
@@ -338,6 +342,8 @@ void gameBoardEnqueuePiece(GameBoard* board, int type) {
     }
     NewNode->type = type;
     NewNode->next = NULL;
+    // Insertamos al final de la cola usando queue_tail,
+    // manteniendo el orden FIFO sin recorrer toda la lista.
     if (board->queue_head == NULL){
         board->queue_head = NewNode;
         board->queue_tail = NewNode;
@@ -355,6 +361,7 @@ int gameBoardDequeuePiece(GameBoard* board, int* out_type) {
     }
     *out_type = (board->queue_head)->type;
     struct PieceQueueNode *noda = board->queue_head;
+    // Al extraer el ultimo nodo, ambos punteros quedan en NULL.
     if (noda->next == NULL) {
         board->queue_head = NULL;
         board->queue_tail = NULL;
