@@ -701,6 +701,8 @@ void correrTests() {
     assert (num_lines1 == 20);
 
     gameBoardDelete(board_row01);
+
+    printf("Todos los tests pasaron correctamente.\n");
 }
 
 // Compara contra "--test" sin depender de string.h ni del Ejercicio 1.
