@@ -217,6 +217,10 @@ GameBoard* gameBoardNew() {
     board->queue_head = NULL;
     board->queue_tail = NULL;
     board->current_piece.active = 0;
+    board->current_piece.col = 0;
+    board->current_piece.rotation = 0;
+    board->current_piece.row = 0;
+    board->current_piece.type = 0;
 
     
     // Usar un bucle para hacer malloc de las 20 filas (RowNode) y conectarlas.
