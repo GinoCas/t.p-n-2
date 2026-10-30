@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
+// LIBRERIA PARA TESTING
+#include <assert.h>
+
 // ========= CONSTANTES DEL JUEGO =========
 #define SCREEN_WIDTH 500
 #define SCREEN_HEIGHT 800
@@ -89,6 +92,9 @@ int len(char* s1) {
 char* strDuplicate(char* src){
     int cantLetras = len(src); // -> 9 letras (no inclue \0)
     char *srcDuplicado = (char*) malloc ((cantLetras + 1) * sizeof(char)); // -> pedimos la memoria para duplicar
+    if (srcDuplicado == NULL) {
+        return NULL;
+    }
     for (int i = 0; i < cantLetras; i++){
         srcDuplicado[i] = src[i];
     }
@@ -115,6 +121,11 @@ char* strConcatenate(char* src1, char* src2){
     int lenSrc1 = len(src1);
     int lenSrc2 = len(src2);
     char *concat = (char*) malloc(sizeof(char) * (lenSrc1 + lenSrc2 + 1));
+    if (concat == NULL) {
+        free(src1);
+        free(src2);
+        return NULL;
+    }
     for (int i = 0; i < lenSrc1; i++) {
         concat[i] = src1[i];
     }
@@ -232,6 +243,9 @@ GameBoard* gameBoardNew() {
 
 void gameBoardAddParticle(GameBoard* board, float x, float y, int color) {
     struct ParticleNode *newParticle = (struct ParticleNode*) malloc(sizeof(ParticleNode));
+    if (newParticle == NULL) {
+        return;
+    }
     newParticle->x = x;
     newParticle->y = y;
     newParticle->color = color;
@@ -315,6 +329,9 @@ int gameBoardCheckAndClearLines(GameBoard* board) {
 
 void gameBoardEnqueuePiece(GameBoard* board, int type) {
     PieceQueueNode* NewNode = (PieceQueueNode*) malloc (sizeof(PieceQueueNode));
+    if(NewNode == NULL){
+        return;
+    }
     NewNode->type = type;
     NewNode->next = NULL;
     if (board->queue_head == NULL){
@@ -520,7 +537,159 @@ void correrTests() {
     //    gameBoardCheckAndClearLines y comprobar que first_row es la fila nueva vacia y que
     //    la lista sigue teniendo 20 filas.
     // Liberar toda la memoria pedida en los tests (strings y tableros).
-    printf("Tests no implementados.\n");
+    //printf("Tests no implementados.\n");
+    char* strEmpty = strDuplicate("");
+    assert(strEmpty != NULL);
+    assert(strCompare(strEmpty, "") == 0);
+    free(strEmpty);
+
+    char* unCarac = strDuplicate("x");
+    assert(unCarac != NULL);
+    assert(strCompare(unCarac, "x") == 0);
+    free(unCarac);
+
+    char* muchosCarac = strDuplicate("abc123");
+    assert(muchosCarac != NULL);
+    assert(strCompare(muchosCarac, "abc123") == 0);
+    free(muchosCarac);
+
+    assert(strCompare("", "") == 0);
+    assert(strCompare("a", "a") == 0);
+    assert(strCompare("a", "b") == 1);
+    assert(strCompare("b", "a") == -1);
+    assert(strCompare("casa", "casas") == 1);
+    assert(strCompare("casas", "casa") == -1);
+
+    char* first = strDuplicate("");
+    char* second = strDuplicate("abc");
+    assert(first != NULL && second != NULL);
+    char* joined = strConcatenate(first, second);
+    assert(joined != NULL);
+    assert(strCompare(joined, "abc") == 0);
+    free(joined);
+
+    first = strDuplicate("hola ");
+    second = strDuplicate("mundo");
+    assert(first != NULL && second != NULL);
+    joined = strConcatenate(first, second);
+    assert(joined != NULL);
+    assert(strCompare(joined, "hola mundo") == 0);
+    free(joined);
+
+    //
+    GameBoard* board = gameBoardNew ();
+    assert(board != NULL);
+
+    //
+    gameBoardEnqueuePiece(board, 1);
+    assert (board->queue_head->type == 1);
+    assert (board->queue_tail->type == 1);
+    gameBoardEnqueuePiece(board, 2);
+    assert (board->queue_head->type == 1);
+    assert (board->queue_tail->type == 2);
+    gameBoardEnqueuePiece(board, 3);
+    assert (board->queue_head->type == 1);
+    assert (board->queue_tail->type == 3);
+    gameBoardEnqueuePiece(board, 4);
+    assert (board->queue_head->type == 1);
+    assert (board->queue_tail->type == 4);
+    gameBoardEnqueuePiece(board, 5);
+    assert (board->queue_head->type == 1);
+    assert (board->queue_tail->type == 5);
+
+    //
+    int out_type = 0;
+    assert (gameBoardDequeuePiece(board, &out_type) == 1);
+    assert (out_type == 1);
+    assert (board->queue_head->type == 2);
+    assert (board->queue_tail->type == 5);
+    assert (gameBoardDequeuePiece(board, &out_type) == 1);
+    assert (out_type == 2);
+    assert (board->queue_head->type == 3);
+    assert (board->queue_tail->type == 5);
+    assert (gameBoardDequeuePiece(board, &out_type) == 1);
+    assert (out_type == 3);
+    assert (board->queue_head->type == 4);
+    assert (board->queue_tail->type == 5);
+    assert (gameBoardDequeuePiece(board, &out_type) == 1);
+    assert (out_type == 4);
+    assert (board->queue_head->type == 5);
+    assert (board->queue_tail->type == 5);
+    assert (gameBoardDequeuePiece(board, &out_type) == 1);
+    assert (out_type == 5);
+    assert (board->queue_head == NULL);
+    assert (board->queue_tail == NULL);
+    assert (gameBoardDequeuePiece(board, &out_type) == 0);
+    assert (out_type == 5);
+    assert (board->queue_head == NULL);
+    assert (board->queue_tail == NULL);
+
+    //
+    gameBoardEnqueuePiece(board, 1);
+    assert (board->queue_head->type == 1);
+    assert (board->queue_tail->type == 1);
+    assert (gameBoardDequeuePiece(board, &out_type) == 1);
+    assert (out_type == 1);
+    assert (board->queue_head == NULL);
+    assert (board->queue_tail == NULL);
+    assert (gameBoardDequeuePiece(board, &out_type) == 0);
+    assert (out_type == 1);
+    assert (board->queue_head == NULL);
+    assert (board->queue_tail == NULL);
+    
+    gameBoardDelete(board);
+    
+    //========
+    GameBoard* board_row19 = gameBoardNew ();
+    assert (board_row19 != NULL);
+    
+    //
+    RowNode* current_row = board_row19->first_row;
+    for (int i = 0; i < 19; i++ ){
+        current_row = current_row->next;
+    }
+    for (int c = 0; c < 10; c++){
+        current_row->cells[c] = 1;
+    }
+    //
+    assert (gameBoardCheckAndClearLines (board_row19) == 1);
+    assert (board_row19->first_row->cells[0] == 0);
+
+    //
+    int num_lines0 = 0;
+    RowNode* travel_lines0 = board_row19->first_row;
+    while (travel_lines0 != NULL){
+        num_lines0++;
+        travel_lines0 = travel_lines0->next;
+    }
+    //
+    assert (num_lines0 == 20);
+
+    gameBoardDelete(board_row19);
+
+    //========
+    GameBoard* board_row01 = gameBoardNew ();
+    assert (board_row01 != NULL);
+
+    for (int c = 0; c < 10; c++){
+            board_row01->first_row->cells[c] = 1;
+        }
+    for (int c = 0; c < 10; c++){
+            board_row01->first_row->next->cells[c] = 1;
+        }
+    
+    assert (gameBoardCheckAndClearLines (board_row01) == 2);
+    
+    int num_lines1 = 0;
+    RowNode* travel_lines1 = board_row01->first_row;
+    while (travel_lines1 != NULL){
+        num_lines1++;
+        travel_lines1 = travel_lines1->next;
+    }
+    //
+    assert (num_lines1 == 20);
+
+    gameBoardDelete(board_row01);
 }
 
 // Compara contra "--test" sin depender de string.h ni del Ejercicio 1.
